@@ -48,8 +48,9 @@ static void test_serialize_text_event() {
 static void test_serialize_long_text_event() {
     struct control_event event;
     event.type = CONTROL_EVENT_TYPE_TEXT;
-    char text[TEXT_MAX_LENGTH];
-    memset(text, 'a', sizeof(text));
+    char text[TEXT_MAX_LENGTH + 1];
+    memset(text, 'a', TEXT_MAX_LENGTH);
+    text[TEXT_MAX_LENGTH] = '\0';
     event.text_event.text = text;
 
     unsigned char buf[SERIALIZED_EVENT_MAX_SIZE];
