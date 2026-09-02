@@ -2,6 +2,7 @@
 
 #include <getopt.h>
 #include <unistd.h>
+#include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <SDL2/SDL.h>
 
@@ -110,9 +111,12 @@ static void print_version(void) {
 
     fprintf(stderr, "dependencies:\n");
     fprintf(stderr, " - SDL %d.%d.%d\n", SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL);
-    fprintf(stderr, " - libavcodec %d.%d.%d\n", LIBAVCODEC_VERSION_MAJOR, LIBAVCODEC_VERSION_MINOR, LIBAVCODEC_VERSION_MICRO);
-    fprintf(stderr, " - libavformat %d.%d.%d\n", LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO);
-    fprintf(stderr, " - libavutil %d.%d.%d\n", LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO);
+    unsigned int version = avcodec_version();
+    fprintf(stderr, " - libavcodec %u.%u.%u\n", version >> 16, version >> 8 & 0xff, version & 0xff);
+    version = avformat_version();
+    fprintf(stderr, " - libavformat %u.%u.%u\n", version >> 16, version >> 8 & 0xff, version & 0xff);
+    version = avutil_version();
+    fprintf(stderr, " - libavutil %u.%u.%u\n", version >> 16, version >> 8 & 0xff, version & 0xff);
 }
 
 static SDL_bool parse_bit_rate(char *optarg, Uint32 *bit_rate) {
@@ -270,8 +274,6 @@ int main(int argc, char *argv[]) {
         print_version();
         return 0;
     }
-
-    av_register_all();
 
     if (avformat_network_init()) {
         return 1;
