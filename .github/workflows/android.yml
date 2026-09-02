@@ -60,12 +60,25 @@ jobs:
             build/server/scrcpy-server.jar
             server/build/outputs/**/*
 
+      - name: Upload server JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: scrcpy-server
+          path: build/server/scrcpy-server.jar
+
   build-windows:
+    needs: build
     runs-on: windows-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Download server JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: scrcpy-server
+          path: server-artifact
 
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
@@ -83,7 +96,7 @@ jobs:
       - name: Build Windows client
         shell: msys2 {0}
         run: |
-          meson setup build --buildtype release --strip -Db_lto=true -Dbuild_server=false
+          meson setup build --buildtype release --strip -Db_lto=true -Dbuild_server=false -Doverride_server_path=scrcpy-server.jar
           ninja -C build
 
       - name: Test Windows client
@@ -95,6 +108,7 @@ jobs:
         run: |
           mkdir -p dist/scrcpy-windows
           cp build/app/scrcpy.exe dist/scrcpy-windows/
+          cp server-artifact/scrcpy-server.jar dist/scrcpy-windows/
           ldd build/app/scrcpy.exe | awk '{print $3}' | grep '^/mingw64/bin/.*\.dll$' | sort -u | xargs -r -I{} cp {} dist/scrcpy-windows/
 
       - name: Upload Windows client
