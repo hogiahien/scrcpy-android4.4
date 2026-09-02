@@ -19,6 +19,7 @@
 #endif
 
 #define DEVICE_SERVER_PATH "/data/local/tmp/scrcpy-server.jar"
+#define DEVICE_DALVIK_CACHE_PATH "/data/local/tmp/dalvik-cache"
 
 static const char *get_server_path(void) {
     const char *server_path = getenv("SCRCPY_SERVER_PATH");
@@ -36,6 +37,12 @@ static SDL_bool push_server(const char *serial) {
 static SDL_bool remove_server(const char *serial) {
     process_t process = adb_remove_path(serial, DEVICE_SERVER_PATH);
     return process_check_success(process, "adb shell rm");
+}
+
+static SDL_bool create_dalvik_cache(const char *serial) {
+    const char *const cmd[] = {"shell", "mkdir", "-p", DEVICE_DALVIK_CACHE_PATH};
+    process_t process = adb_execute(serial, cmd, sizeof(cmd) / sizeof(cmd[0]));
+    return process_check_success(process, "adb shell mkdir");
 }
 
 static SDL_bool enable_tunnel_reverse(const char *serial, Uint16 local_port) {
@@ -84,6 +91,7 @@ static process_t execute_server(const char *serial,
     const char *const cmd[] = {
         "shell",
         "CLASSPATH=/data/local/tmp/scrcpy-server.jar",
+        "ANDROID_DATA=/data/local/tmp",
         "app_process",
         "/", // unused
         "com.genymobile.scrcpy.Server",
@@ -158,6 +166,10 @@ SDL_bool server_start(struct server *server, const char *serial, Uint16 local_po
     }
 
     server->server_copied_to_device = SDL_TRUE;
+
+    if (!create_dalvik_cache(serial)) {
+        return SDL_FALSE;
+    }
 
     if (!enable_tunnel(server)) {
         return SDL_FALSE;
