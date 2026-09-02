@@ -1,0 +1,60 @@
+name: Build scrcpy (Android 4.4 fork)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      ANDROID_API: "19"   # Android 4.4
+      NDK_VERSION: "25.2.9519653"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            meson ninja-build pkg-config \
+            libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev \
+            libswresample-dev libusb-1.0-0-dev libsdl2-dev adb \
+            openjdk-17-jdk unzip
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android platform + build-tools + NDK
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-${ANDROID_API}" \
+            "build-tools;34.0.0" \
+            "ndk;${NDK_VERSION}"
+
+      - name: Build
+        run: |
+          ./install_release.sh || ./build.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: scrcpy-build
+          path: |
+            *.apk
+            app/build/outputs/**/*
+            server/build/outputs/**/*
+            build/**/*
