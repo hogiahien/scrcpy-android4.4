@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ScreenEncoder implements Device.RotationListener {
 
-    private static final int DEFAULT_FRAME_RATE = 60; // fps
+    private static final int DEFAULT_FRAME_RATE = 30; // fps
     private static final int DEFAULT_I_FRAME_INTERVAL = 10; // seconds
 
     private static final int REPEAT_FRAME_DELAY = 6; // repeat after 6 frames
@@ -59,18 +59,25 @@ public class ScreenEncoder implements Device.RotationListener {
                 IBinder display = createDisplay();
                 Rect deviceRect = device.getScreenInfo().getDeviceSize().toRect();
                 Rect videoRect = device.getScreenInfo().getVideoSize().toRect();
-                setSize(format, videoRect.width(), videoRect.height());
-                configure(codec, format);
-                Surface surface = codec.createInputSurface();
-                setDisplaySurface(display, surface, deviceRect, videoRect);
-                codec.start();
+                Surface surface = null;
+                boolean started = false;
                 try {
+                    setSize(format, videoRect.width(), videoRect.height());
+                    configure(codec, format);
+                    surface = codec.createInputSurface();
+                    setDisplaySurface(display, surface, deviceRect, videoRect);
+                    codec.start();
+                    started = true;
                     alive = encode(codec, outputStream);
                 } finally {
-                    codec.stop();
+                    if (started) {
+                        codec.stop();
+                    }
                     destroyDisplay(display);
                     codec.release();
-                    surface.release();
+                    if (surface != null) {
+                        surface.release();
+                    }
                 }
             } while (alive);
         } finally {
