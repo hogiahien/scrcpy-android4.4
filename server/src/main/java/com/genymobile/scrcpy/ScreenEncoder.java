@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ScreenEncoder implements Device.RotationListener {
 
-    private static final int DEFAULT_FRAME_RATE = 30; // fps
+    private static final int DEFAULT_FRAME_RATE = 60; // fps
     private static final int DEFAULT_I_FRAME_INTERVAL = 10; // seconds
 
     private static final int REPEAT_FRAME_DELAY = 6; // repeat after 6 frames
