@@ -55,7 +55,7 @@ static void test_serialize_long_text_event() {
 
     unsigned char buf[SERIALIZED_EVENT_MAX_SIZE];
     int size = control_event_serialize(&event, buf);
-    assert(size == 3 + sizeof(text));
+    assert(size == 3 + TEXT_MAX_LENGTH);
 
     unsigned char expected[3 + TEXT_MAX_LENGTH];
     expected[0] = 0x01; // CONTROL_EVENT_TYPE_KEYCODE
