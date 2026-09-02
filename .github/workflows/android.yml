@@ -90,8 +90,15 @@ jobs:
         shell: msys2 {0}
         run: meson test -C build --print-errorlogs
 
+      - name: Package Windows client
+        shell: msys2 {0}
+        run: |
+          mkdir -p dist/scrcpy-windows
+          cp build/app/scrcpy.exe dist/scrcpy-windows/
+          ldd build/app/scrcpy.exe | awk '{print $3}' | grep '^/mingw64/bin/.*\.dll$' | sort -u | xargs -r -I{} cp {} dist/scrcpy-windows/
+
       - name: Upload Windows client
         uses: actions/upload-artifact@v4
         with:
           name: scrcpy-windows-client
-          path: build/app/scrcpy.exe
+          path: dist/scrcpy-windows
