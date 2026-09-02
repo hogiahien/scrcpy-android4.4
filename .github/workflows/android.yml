@@ -11,8 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ANDROID_API: "19"   # Android 4.4
-      NDK_VERSION: "25.2.9519653"
+      ANDROID_COMPILE_API: "33"
 
     steps:
       - name: Checkout
@@ -36,25 +35,27 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android platform + build-tools + NDK
+      - name: Install Android platform and build tools
         run: |
           yes | sdkmanager --licenses
           sdkmanager \
             "platform-tools" \
-            "platforms;android-${ANDROID_API}" \
-            "build-tools;34.0.0" \
-            "ndk;${NDK_VERSION}"
+            "platforms;android-${ANDROID_COMPILE_API}" \
+            "build-tools;34.0.0"
 
-      - name: Build
+      - name: Build client and server
         run: |
-          ./install_release.sh || ./build.sh
+          meson setup build --buildtype release --strip -Db_lto=true
+          ninja -C build
+
+      - name: Test client
+        run: meson test -C build --print-errorlogs
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: scrcpy-build
           path: |
-            *.apk
-            app/build/outputs/**/*
+            build/app/scrcpy
+            build/server/scrcpy-server.jar
             server/build/outputs/**/*
-            build/**/*
