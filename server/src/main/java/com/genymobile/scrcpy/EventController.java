@@ -33,7 +33,7 @@ public class EventController {
     private void initPointer() {
         MotionEvent.PointerProperties props = pointerProperties[0];
         props.id = 0;
-        props.toolType = MotionEvent.TOOL_TYPE_FINGER;
+        props.toolType = MotionEvent.TOOL_TYPE_MOUSE;
 
         MotionEvent.PointerCoords coords = pointerCoords[0];
         coords.orientation = 0;
@@ -72,7 +72,7 @@ public class EventController {
                 injectText(controlEvent.getText());
                 break;
             case ControlEvent.TYPE_MOUSE:
-                injectMouse(controlEvent.getAction(), controlEvent.getPosition());
+                injectMouse(controlEvent.getAction(), controlEvent.getButtons(), controlEvent.getPosition());
                 break;
             case ControlEvent.TYPE_SCROLL:
                 injectScroll(controlEvent.getPosition(), controlEvent.getHScroll(), controlEvent.getVScroll());
@@ -113,7 +113,7 @@ public class EventController {
         return true;
     }
 
-    private boolean injectMouse(int action, Position position) {
+    private boolean injectMouse(int action, int buttons, Position position) {
         long now = SystemClock.uptimeMillis();
         if (action == MotionEvent.ACTION_DOWN) {
             lastMouseDown = now;
@@ -124,8 +124,8 @@ public class EventController {
             return false;
         }
         setPointerCoords(point);
-        MotionEvent event = MotionEvent.obtain(lastMouseDown, now, action, 1, pointerProperties, pointerCoords, 0, 0, 1f, 1f, 0, 0,
-                InputDevice.SOURCE_TOUCHSCREEN, 0);
+        MotionEvent event = MotionEvent.obtain(lastMouseDown, now, action, 1, pointerProperties, pointerCoords, 0, buttons, 1f, 1f, 0, 0,
+                InputDevice.SOURCE_MOUSE, 0);
         return injectEvent(event);
     }
 
