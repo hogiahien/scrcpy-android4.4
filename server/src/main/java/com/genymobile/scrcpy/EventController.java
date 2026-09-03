@@ -156,7 +156,7 @@ public class EventController {
     }
 
     private boolean injectEvent(InputEvent event) {
-        return device.injectInputEvent(event, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
+        return device.injectInputEvent(event, InputManager.INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH);
     }
 
     private boolean turnScreenOn() {
